@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../../../REACT-JS/myportfolio"
+		},
+		{
+			"path": "../../../REACT-JS/freecodecamp-reactJS"
+		},
+		{
+			"path": "../../blockchain-voting"
+		},
+		{
+			"path": "../../newKickStart"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
