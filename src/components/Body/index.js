@@ -1,18 +1,18 @@
 import { Moralis } from 'moralis'
 import { Wrapper, Content } from "../Body/Body.Styled"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import FromToken from "../FromToken"
 import ToToken from '../ToToken'
+import { NotAuthenticatedError } from 'react-moralis'
 
 
 const Body = ({}) => {
+
     const [ tokenList, setTokenList ] = useState([])
     const [ fromData, setFromData ] = useState()
     const [ toData, setToData ] = useState()
+    const [ quote, setQuote ] = useState()
 
-    const wrapSetFromData = useCallback((data) => {
-        setFromData(data)
-    },[])
     
 
     useEffect( () => {
@@ -34,40 +34,59 @@ const Body = ({}) => {
     for (const address in tokenList) {
     tokens.push(tokenList[address])
     }
-    
-    // const getQuote = async () => {
-    //     if (!fromToken.address || !toToken.address || !fromAmount ) return
-    //     let amount = Number(Moralis.Units.ETH(fromAmount))
+
+    // useMemo( async () => {
+    //     if (!fromData.token.address || !toData.token.address || !fromData.amount ) return
+    //     let amount = Number(Moralis.Units.ETH(fromData.amount))
         
-    //     const quote = await Moralis.Plugins.oneInch.quote({
+    //     setQuote(await Moralis.Plugins.oneInch.quote({
     //         chain: 'eth',
-    //         fromTokenAddress: fromToken.address,
-    //         toTokenAddress: toToken.address,
+    //         fromTokenAddress: fromData.token.address,
+    //         toTokenAddress: toData.token.address,
     //         amount: amount,
-    //     }) 
-    //     console.log(quote)
-    // }
+    //     }) )
+    // },[fromData])
+    const getQuote = async () => {
+        if (!fromData.token.address || !toData.token.address || !fromData.amount ) return
+        let amount = Number(fromData.amount * 10**fromData.token.decimals)
+        const quote = await Moralis.Plugins.oneInch.quote({
+            chain: 'eth',
+            fromTokenAddress: fromData.token.address,
+            toTokenAddress: toData.token.address,
+            amount: amount,
+        }) 
+        setQuote(quote)
+
+        
+        
+    }
+
     const submitSwap = () => {
         console.log('From: ', fromData, 'To: ', toData)
+        getQuote()
 
+        
     }
+    console.log(quote)
     return (
         <Wrapper>
             <Content>
                 <label>Swap</label>
                 <FromToken
                     tokens={tokens}
-                    fromData={wrapSetFromData}
+                    fromData={setFromData}
                     >
                 </FromToken>
                 <ToToken
                     tokens={tokens}
                     toData={setToData}
+                    quote={quote}
                     >
                 </ToToken>
-                <p>Estimated Gas: <span>23333</span></p>
+                <p>Estimated Gas: <span>{quote && quote.estimatedGas}</span></p>
                 <button onClick={() => submitSwap()}>Swap</button>
             </Content>
+            {quote && quote.error}
         </Wrapper>
     )
 }

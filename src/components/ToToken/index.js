@@ -4,20 +4,24 @@ import { Moralis } from "moralis"
 import { Wrapper, Content } from "./TokenSelect.styled"
 import Modal from "../Modal"
 
-const TokenSelect = ({ tokens, toData }) => {
+const TokenSelect = ({ tokens, toData, quote }) => {
     const [openModal, setOpenModal ] = useState(false)
     const [ toToken, setToToken ] = useState()
     const [ toAmount, setToAmount ] = useState(0)
 
-    useMemo(() => {
+    useEffect(() => {
         toData({
             token: toToken,
             amount: toAmount
         })
-        console.log('inToMemo')
-
-    }, [toToken, toAmount])
-    console.log('this is from totoken')
+    }, [toAmount, toToken] )
+    // const handleData = (e) => {
+    //     setToAmount(e)
+    //     toData({
+    //         token: toToken,
+    //         amount: toAmount
+    //     })
+    // }
 
 
     return (
@@ -27,6 +31,7 @@ const TokenSelect = ({ tokens, toData }) => {
                     tokens={tokens} 
                     setToken={setToToken}
                     setOpenModal={setOpenModal}
+
                     >
                 </Modal>
                 }
@@ -35,8 +40,9 @@ const TokenSelect = ({ tokens, toData }) => {
                    {toToken ? toToken.symbol : 'Select To Token'}
                 </div>
                 <input 
-                    value={toAmount}
-                    onChange={event => setToAmount(event.target.value) }/>
+                    value={quote && quote.toTokenAmount / 10**toToken.decimals}
+                    onChange={event =>setToAmount(event.target.value)
+                    }/>
             </Content>
         </Wrapper>
     )
