@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const Wrapper = styled.div `
     /* background-color: #3c3c3c ; */
     color: white;
-    padding: 25px;
+    /* padding: 25px; */
 
 `
 
@@ -27,5 +27,10 @@ export const Content = styled.div `
         border-radius: 5px;
         background-color: #4f93d8 ;
         color: white;
+        
+    }
+    button:disabled {
+        background-color: white;
+        color: #4f93d8 ;
     }
 `

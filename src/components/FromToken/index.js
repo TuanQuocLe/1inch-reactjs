@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useMemo, useCallback } from "react"
+import { useState, useEffect, useEffectLayout, memo, useMemo, useCallback } from "react"
 import { Moralis } from "moralis"
 
 import { Wrapper, Content } from "./TokenSelect.styled"
@@ -8,23 +8,17 @@ const TokenSelect = ({ tokens, fromData, onGetQuote }) => {
     const [ openModal, setOpenModal ] = useState(false)
     const [ fromToken, setFromToken ] = useState()
     const [ fromAmount, setFromAmount ] = useState(0)
-    
-    useEffect(() => {
-        fromData({
-            token: fromToken,
-            amount: fromAmount
-        })
-    }, [fromAmount, fromToken] )
-    // const handleData = (e) => {
-    //     setFromAmount(e)
-    //     fromData({
-    //         token: fromToken,
-    //         amount: fromAmount
-    //     })
-    // }
-   
 
-    console.log('this is from fromtoken')
+    const Data = {fromToken, fromAmount}
+
+    const updateData = useMemo(() => {
+        fromData(Data)
+    }, [fromToken, fromAmount])
+    
+    const handleFromData = (event) => {
+        setFromAmount(event.target.value)
+        
+    }
     return (
         <Wrapper>
             {openModal &&
@@ -41,7 +35,7 @@ const TokenSelect = ({ tokens, fromData, onGetQuote }) => {
                 </div>
                 <input 
                     value={fromAmount}
-                    onChange={event => setFromAmount(event.target.value)}/>
+                    onChange={event => handleFromData(event)}/>
             </Content>
         </Wrapper>
     )

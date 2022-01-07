@@ -1,20 +1,18 @@
 import { Moralis } from 'moralis'
 import { Wrapper, Content } from "../Body/Body.Styled"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import Header from '../Header'
 import FromToken from "../FromToken"
 import ToToken from '../ToToken'
-import { NotAuthenticatedError } from 'react-moralis'
 
 
 const Body = ({}) => {
-
+    const [ buttonDisabled, setButtonDisabled ] = useState(true)
     const [ tokenList, setTokenList ] = useState([])
-    const [ fromData, setFromData ] = useState()
-    const [ toData, setToData ] = useState()
+    const [ fromData, setFromData ] = useState({})
+    const [ toData, setToData ] = useState({})
     const [ quote, setQuote ] = useState()
-
     
-
     useEffect( () => {
         async function fetchData () {
           await Moralis.enableWeb3()
@@ -24,9 +22,12 @@ const Body = ({}) => {
           chain: 'eth', // The blockchain you want to use (eth/bsc/polygon)
           });
           setTokenList(tokens.tokens)
-          
+        if(Moralis.User.current()) {
+          setButtonDisabled(false)
+        }  
       }
       fetchData()
+      
       },[])
       
     let tokens = []
@@ -35,44 +36,82 @@ const Body = ({}) => {
     tokens.push(tokenList[address])
     }
 
-    // useMemo( async () => {
-    //     if (!fromData.token.address || !toData.token.address || !fromData.amount ) return
-    //     let amount = Number(Moralis.Units.ETH(fromData.amount))
-        
-    //     setQuote(await Moralis.Plugins.oneInch.quote({
-    //         chain: 'eth',
-    //         fromTokenAddress: fromData.token.address,
-    //         toTokenAddress: toData.token.address,
-    //         amount: amount,
-    //     }) )
-    // },[fromData])
+    const logIn = async () => {
+        try {
+            const currentUser = Moralis.User.current()
+            if (!currentUser) {
+                currentUser = await Moralis.Web3.authenticate()
+            }
+            setButtonDisabled(false)
+                   
+        } catch (error) {
+            console.log(console.error())
+        }
+    }
+
     const getQuote = async () => {
-        if (!fromData.token.address || !toData.token.address || !fromData.amount ) return
-        let amount = Number(fromData.amount * 10**fromData.token.decimals)
-        const quote = await Moralis.Plugins.oneInch.quote({
-            chain: 'eth',
-            fromTokenAddress: fromData.token.address,
-            toTokenAddress: toData.token.address,
-            amount: amount,
-        }) 
-        setQuote(quote)
+        console.log('from: ', fromData, 'to: ',toData)
+        if (fromData.fromToken && toData.toToken && fromData.fromAmount) {
+            console.log('inQutoe')
+            const amount = Number(fromData.fromAmount * 10**fromData.fromToken.decimals)
+            const quote = await Moralis.Plugins.oneInch.quote({
+                chain: 'eth',
+                fromTokenAddress: fromData.fromToken.address,
+                toTokenAddress: toData.toToken.address,
+                amount: amount,
+            }) 
+            setQuote(quote)
 
-        
-        
+        } 
     }
-
-    const submitSwap = () => {
-        console.log('From: ', fromData, 'To: ', toData)
+    useMemo(()=> {
         getQuote()
-
-        
+    }, [fromData, toData])
+    
+    const doSwap = async (amount, address) => {
+        console.log('in doSwap')
+        await  Moralis.Plugins.oneInch.swap({
+                chain: 'eth',
+                fromTokenAddress: fromData.fromToken.address,
+                toTokenAddress: toData.toToken.address,
+                amount: amount,
+                fromAddress: address,
+                slippage: 1,
+            })
     }
-    console.log(quote)
+
+    const trySwap = async () => {
+        let address = Moralis.User.current().get('ethAddress')
+        let amount = Number(fromData.amount* 10**fromData.fromToken.decimals)
+
+        if (fromData.fromToken.symbol !== 'ETH') {
+            const allowance = await Moralis.Plugins.oneInch.hasAllowance({
+                chain: 'eth',
+                fromTokenAddress: fromData.fromToken.address,
+                fromAddress: address,
+                amount: amount,
+            })
+            if (!allowance) {
+                await Moralis.Plugins.oneInch.approve({
+                    chain: 'eth',
+                    tokenAddress: fromData.fromToken.address,
+                    fromAddress: address,
+                })
+            }
+        }
+        let receipt = await doSwap(amount, address)
+        alert('swap completed')
+    }
+    
+
+    
     return (
         <Wrapper>
+            <Header logIn={logIn} />
             <Content>
                 <label>Swap</label>
                 <FromToken
+                    onGetQuote={getQuote}
                     tokens={tokens}
                     fromData={setFromData}
                     >
@@ -84,7 +123,7 @@ const Body = ({}) => {
                     >
                 </ToToken>
                 <p>Estimated Gas: <span>{quote && quote.estimatedGas}</span></p>
-                <button onClick={() => submitSwap()}>Swap</button>
+                <button disabled={buttonDisabled} onClick={trySwap}>Swap</button>
             </Content>
             {quote && quote.error}
         </Wrapper>
