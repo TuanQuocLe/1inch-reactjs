@@ -1,6 +1,9 @@
+
 import { Wrapper, Content } from './Header.styled'
 
-const Header = () => {
+
+const Header = ({logIn}) => {
+    
     return (
         <Wrapper>
             <Content>
@@ -8,7 +11,7 @@ const Header = () => {
                     <a href='/'>LuemSwap</a>
                     <a href='/'>Home</a>
                 </div>
-                <button>Sign in with Metamask</button>
+                <button onClick={logIn}>{ 'Sign in with Metamask'}</button>
             </Content>
         </Wrapper>
     )
