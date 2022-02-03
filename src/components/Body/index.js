@@ -35,10 +35,10 @@ const Body = ({}) => {
     for (const address in tokenList) {
     tokens.push(tokenList[address])
     }
-
+    const currentUser = Moralis.User.current()
+    if (currentUser) setButtonDisabled(false)
     const logIn = async () => {
         try {
-            const currentUser = Moralis.User.current()
             if (!currentUser) {
                 currentUser = await Moralis.Web3.authenticate()
             }

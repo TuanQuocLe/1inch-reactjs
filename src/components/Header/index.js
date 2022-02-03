@@ -8,7 +8,7 @@ const Header = ({logIn}) => {
         <Wrapper>
             <Content>
                 <div>
-                    <a href='/'>LuemSwap</a>
+                    <a href='/'>LumSwap</a>
                     <a href='/'>Home</a>
                 </div>
                 <button onClick={logIn}>{ 'Sign in with Metamask'}</button>
