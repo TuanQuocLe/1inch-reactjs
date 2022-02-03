@@ -124,8 +124,8 @@ const Body = ({}) => {
                 </ToToken>
                 <p>Estimated Gas: <span>{quote && quote.estimatedGas}</span></p>
                 <button disabled={buttonDisabled} onClick={trySwap}>Swap</button>
+                {quote && quote.error}
             </Content>
-            {quote && quote.error}
         </Wrapper>
     )
 }
